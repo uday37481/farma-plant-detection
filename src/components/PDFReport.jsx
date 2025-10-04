@@ -1,0 +1,203 @@
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica'
+  },
+  header: {
+    marginBottom: 20,
+    borderBottom: '2 solid #10b981',
+    paddingBottom: 10
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#10b981',
+    marginBottom: 5
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 15
+  },
+  section: {
+    marginBottom: 15
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+    backgroundColor: '#f0fdf4',
+    padding: 8,
+    borderRadius: 4
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 6
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#4b5563',
+    width: '40%'
+  },
+  value: {
+    fontSize: 11,
+    color: '#1f2937',
+    width: '60%'
+  },
+  statusHealthy: {
+    color: '#10b981',
+    fontWeight: 'bold'
+  },
+  statusDiseased: {
+    color: '#ef4444',
+    fontWeight: 'bold'
+  },
+  treatment: {
+    fontSize: 10,
+    color: '#1f2937',
+    padding: 10,
+    backgroundColor: '#fef3c7',
+    borderRadius: 4,
+    marginTop: 8,
+    lineHeight: 1.5
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: 9,
+    borderTop: '1 solid #e5e7eb',
+    paddingTop: 10
+  },
+  confidence: {
+    fontSize: 11,
+    color: '#059669',
+    fontWeight: 'bold'
+  }
+});
+
+const DetectionPDFDocument = ({ detection, language = 'en' }) => {
+  const isHealthy = detection.status === 'healthy';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>FarMa Plant Detection Report</Text>
+          <Text style={styles.subtitle}>AI-Powered Farm Management & Plant Health Analysis</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Detection Information</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Plant Type:</Text>
+            <Text style={styles.value}>{detection.plantName}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Scientific Name:</Text>
+            <Text style={styles.value}>{detection.scientificName || 'N/A'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Health Status:</Text>
+            <Text style={[styles.value, isHealthy ? styles.statusHealthy : styles.statusDiseased]}>
+              {isHealthy ? 'Healthy' : 'Diseased'}
+            </Text>
+          </View>
+          {detection.diseaseName && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Disease Detected:</Text>
+              <Text style={styles.value}>{detection.diseaseName}</Text>
+            </View>
+          )}
+          <View style={styles.row}>
+            <Text style={styles.label}>Confidence Level:</Text>
+            <Text style={styles.confidence}>{(detection.confidence * 100).toFixed(0)}%</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Detection Details</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Date & Time:</Text>
+            <Text style={styles.value}>
+              {new Date(detection.createdAt).toLocaleString()}
+            </Text>
+          </View>
+          {detection.location && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Location:</Text>
+              <Text style={styles.value}>{detection.location}</Text>
+            </View>
+          )}
+          {detection.notes && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Notes:</Text>
+              <Text style={styles.value}>{detection.notes}</Text>
+            </View>
+          )}
+        </View>
+
+        {!isHealthy && detection.treatment && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recommended Treatment</Text>
+            <Text style={styles.treatment}>{detection.treatment}</Text>
+          </View>
+        )}
+
+        {isHealthy && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recommendation</Text>
+            <Text style={styles.treatment}>
+              Your plant appears healthy! Continue regular care including proper watering,
+              adequate sunlight, and balanced fertilization. Monitor regularly for any signs
+              of stress or disease.
+            </Text>
+          </View>
+        )}
+
+        <Text style={styles.footer}>
+          Generated by FarMa - Plant Detection & Health Analysis System
+          {'\n'}
+          This report is for informational purposes only. Consult agricultural experts for serious issues.
+        </Text>
+      </Page>
+    </Document>
+  );
+};
+
+export const PDFReportButton = ({ detection, language, isDark }) => {
+  return (
+    <PDFDownloadLink
+      document={<DetectionPDFDocument detection={detection} language={language} />}
+      fileName={`FarMa_Report_${detection.plantName}_${new Date(detection.createdAt).toISOString().split('T')[0]}.pdf`}
+    >
+      {({ loading }) => (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          disabled={loading}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+            isDark
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          } disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
+        >
+          <Download className="w-5 h-5" />
+          <span>{loading ? 'Generating...' : 'Download Report'}</span>
+        </motion.button>
+      )}
+    </PDFDownloadLink>
+  );
+};
+
+export default DetectionPDFDocument;
