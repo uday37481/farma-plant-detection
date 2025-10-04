@@ -68,10 +68,12 @@ export default function PlantDetection() {
       imageUrl: imagePreview,
       plantId: result.plant.id,
       plantName: result.plant.name[language],
+      scientificName: result.plant.scientificName,
       diseaseId: result.disease?.id || null,
       diseaseName: result.disease?.name[language] || null,
+      treatment: result.disease?.treatment[language] || 'Continue regular care including proper watering, adequate sunlight, and balanced fertilization.',
       status: result.status,
-      confidence: result.confidence,
+      confidence: parseFloat(result.confidence),
       location,
       notes,
       createdAt: new Date().toISOString()

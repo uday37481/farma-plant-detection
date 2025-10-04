@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   TrendingUp,
   CheckCircle,
@@ -30,6 +31,7 @@ import {
 export default function Dashboard({ onNavigate }) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { isDark } = useTheme();
 
   const detections = JSON.parse(
     localStorage.getItem(`detections_${user?.id}`) || '[]'
@@ -83,6 +85,20 @@ export default function Dashboard({ onNavigate }) {
     }
     return acc;
   }, []).slice(0, 5);
+
+  const diseaseFrequencyData = detections
+    .filter(d => d.status === 'diseased' && d.diseaseName)
+    .reduce((acc, d) => {
+      const existing = acc.find(item => item.name === d.diseaseName);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        acc.push({ name: d.diseaseName, count: 1 });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
 
   const stats = [
     {
@@ -263,33 +279,88 @@ export default function Dashboard({ onNavigate }) {
         </motion.div>
       </div>
 
-      {plantTypeData.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          whileHover={{ scale: 1.01 }}
-          className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
-        >
-          <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
-            <TrendingUp className="w-6 h-6 text-green-600" />
-            <span>Top Detected Crops</span>
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={plantTypeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px'
-                }}
-              />
-              <Bar dataKey="count" fill="#10b981" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {plantTypeData.length > 0 && (
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ scale: 1.01 }}
+            className={`rounded-2xl shadow-lg p-6 border transition-colors duration-300 ${
+              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}
+          >
+            <h2 className={`text-xl font-bold mb-6 flex items-center space-x-2 transition-colors duration-300 ${
+              isDark ? 'text-gray-100' : 'text-gray-800'
+            }`}>
+              <TrendingUp className="w-6 h-6 text-green-600" />
+              <span>Top Detected Crops</span>
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={plantTypeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e5e7eb'} />
+                <XAxis dataKey="name" stroke={isDark ? '#9ca3af' : '#6b7280'} />
+                <YAxis stroke={isDark ? '#9ca3af' : '#6b7280'} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : '#fff',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                    color: isDark ? '#f3f4f6' : '#1f2937'
+                  }}
+                />
+                <Bar dataKey="count" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+        )}
+
+        {diseaseFrequencyData.length > 0 && (
+          <motion.div
+            variants={itemVariants}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.5 }}
+            className={`rounded-2xl shadow-lg p-6 border transition-colors duration-300 ${
+              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}
+          >
+            <h2 className={`text-xl font-bold mb-6 flex items-center space-x-2 transition-colors duration-300 ${
+              isDark ? 'text-gray-100' : 'text-gray-800'
+            }`}>
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+              <span>Disease Frequency</span>
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={diseaseFrequencyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e5e7eb'} />
+                <XAxis
+                  dataKey="name"
+                  stroke={isDark ? '#9ca3af' : '#6b7280'}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis stroke={isDark ? '#9ca3af' : '#6b7280'} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : '#fff',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                    color: isDark ? '#f3f4f6' : '#1f2937'
+                  }}
+                />
+                <Bar dataKey="count" fill="#ef4444" radius={[8, 8, 0, 0]}>
+                  {diseaseFrequencyData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`hsl(${360 - index * 30}, 70%, 50%)`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+        )}
+      </div>
 
       <motion.div
         variants={itemVariants}

@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { initializeDummyData } from './utils/dummyData';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Layout from './components/Layout';
@@ -54,6 +55,12 @@ function AppContent() {
       localStorage.setItem('users', JSON.stringify(users));
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      initializeDummyData(user.id);
+    }
+  }, [user]);
 
   if (loading) {
     return (

@@ -1,11 +1,15 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { PDFReportButton } from './PDFReport';
 import { Filter, Calendar, MapPin, Trash2, X } from 'lucide-react';
 
 export default function DetectionHistory() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { isDark } = useTheme();
   const [filter, setFilter] = useState('all');
   const [selectedDetection, setSelectedDetection] = useState(null);
 
@@ -215,6 +219,11 @@ export default function DetectionHistory() {
               </div>
 
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
+                <PDFReportButton
+                  detection={selectedDetection}
+                  language={language}
+                  isDark={isDark}
+                />
                 <button
                   onClick={() => setSelectedDetection(null)}
                   className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
