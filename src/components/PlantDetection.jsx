@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { getRandomDetection } from '../utils/plantData';
+import FertilizerPlanner from './FertilizerPlanner';
 import { Upload, Image as ImageIcon, Loader, MapPin, FileText, Sparkles } from 'lucide-react';
 
 export default function PlantDetection() {
@@ -367,6 +368,15 @@ export default function PlantDetection() {
           </motion.div>
         )}
       </div>
+
+      {result && (
+        <FertilizerPlanner
+          plantId={result.plant.id}
+          plantName={result.plant.name[language]}
+          diseaseId={result.disease?.id || null}
+          diseaseName={result.disease?.name[language] || null}
+        />
+      )}
     </motion.div>
   );
 }

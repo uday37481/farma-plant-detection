@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import Chatbot from './Chatbot';
 import {
   TrendingUp,
   CheckCircle,
@@ -459,6 +460,8 @@ export default function Dashboard({ onNavigate }) {
           </div>
         </motion.div>
       )}
+
+      <Chatbot />
     </motion.div>
   );
 }
